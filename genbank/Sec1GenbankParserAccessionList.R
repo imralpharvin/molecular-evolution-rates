@@ -37,7 +37,6 @@ if(numSearch < 300){
       tempMax = numSearch
       
     }
-  
     genbankInfo<-read.GenBank(accessionList[tempMin:tempMax],species.names=T)
     write.dna(genbankInfo,"cytochromeb.fasta", format="fasta", append = TRUE)
     new <- attr(genbankInfo, "species")
