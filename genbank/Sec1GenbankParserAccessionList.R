@@ -6,11 +6,50 @@ library(ape)
 library("Biostrings")
 packageVersion("ape")
 
+#Read file with accession list
 accessionList <- read.csv("accessionlist.csv")
 accessionList <- as.vector(accessionList$accession)
-genbankInfo<-read.GenBank(accessionList[1:100],species.names=T)
-write.dna(genbankInfo,"cytochromeb.fasta", format="fasta")
+numSearch <- length(accessionList)
+numSearch <- 500
+
+#Setting up boundaries
+tempMin = 1
+tempMax = 300
+
+if(numSearch < 300){
+  tempMax <- numSearch
+  genbankInfo<-read.GenBank(accessionList[tempMin:tempMax],species.names=T)
+  species <- attr(genbankInfo, "species")
+  write.dna(genbankInfo,"cytochromeb.fasta", format="fasta")
+  
+} else{
+  
+  genbankInfo<-read.GenBank(accessionList[tempMin:tempMax],species.names=T)
+  write.dna(genbankInfo,"cytochromeb.fasta", format="fasta")
+  species <- attr(genbankInfo, "species")
+  while(tempMax != numSearch){
+    
+    tempMin = tempMin + 300
+    tempMax = tempMax + 300
+    
+    if(numSearch <= tempMax ){
+      
+      tempMax = numSearch
+      
+    }
+  
+    genbankInfo<-read.GenBank(accessionList[tempMin:tempMax],species.names=T)
+    write.dna(genbankInfo,"cytochromeb.fasta", format="fasta", append = TRUE)
+    new <- attr(genbankInfo, "species")
+    species <- append(species, new)
+    
+  }
+}
+
+#Read fasta
 cytB <- readDNAStringSet("cytochromeb.fasta")
+
+#Put to file
 seq_name = names(cytB)
 sequence = paste(cytB)
-dfcytB <- data.frame(seq_name, sequence)
+dfcytB <- data.frame(species, seq_name,  sequence)
