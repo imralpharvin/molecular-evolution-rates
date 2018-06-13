@@ -1,3 +1,5 @@
+
+#P
 setwd("C:/Users/RalphArvin/Desktop/ralph-workfiles/r-workspaces/NCBI Genbank")
 
 ####WITH ACCESSION LIST####
