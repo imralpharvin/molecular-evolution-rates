@@ -20,7 +20,7 @@ GetTraitInfo <- function(x) {
     print(paste0("Median: ", median(x, na.rm = T)))
     # Plot of histogram.
     hist(x, main = "")
-    paste("Histogram plotted!")
+    print("Histogram plotted!")
     
     # If the trait is discrete (categorical)...
   } else if(traitType == "character" | traitType == "factor" | traitType == "integer") {

@@ -1,4 +1,4 @@
-setwd("C:/Users/imralpharvin/Desktop/work-s2018/mammals/rscripts")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammals/rscripts")
 
 
 #install.packages("ape")
@@ -35,6 +35,6 @@ mammals_NJ  <- NJ(dm)
 #Plot NJ tree
 plot(mammals_NJ, main = "Neighbor Joining")
 
-
-write.tree(mammals_NJ, file="bootstrap_example.tre")
+#Write Tree
+write.tree(mammals_NJ, file="bootstrap_example.tree")
 

@@ -88,5 +88,5 @@ dfCheckCentroidSeqs <- RefSeqTrim(dfCentroidSeqs)
 dfCheckCentroidSeqs[,1:7]<- dfCentroidSeqs[,1:7]
 
 # Remove objects that are not required for Section 4.
-rm(alignmentList, centroidSeqs, first_time, i); rm(dfPreCentroid, dfLargeBins, dfSingletons); rm(largeBinList, distanceMatrixList, DNAStringSetList)
+rm(alignmentList, centroidSeqs, i); rm(dfPreCentroid, dfLargeBins, dfSingletons); rm(largeBinList, distanceMatrixList, DNAStringSetList)
 

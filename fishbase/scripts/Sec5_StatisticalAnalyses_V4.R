@@ -23,6 +23,7 @@
 # Or view it directly here at http://www.gnu.org/licenses/
 
 #############################################################################################################################
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/fishbase/scripts")
 
 ##### SECTION 5: STATISTICAL ANALYSES #####
 # This section is designed to perform single variable and multivariable analyses regression analyses while controlling for phylogeny. The main objective is to
@@ -131,7 +132,7 @@ names(singleVarResults) <- traits
 
 # Which traits have p-values 0.15 or below?
 # For now, this is only taking the first p-value of the trait (I still need to change it to deal with multi-level factors).
-sigVars <- lapply(singleVarCapers, function(x) (x$coefficients[2,4]))
+sigVars <- lapply(singleVarResults, function(x) (x$coefficients[2,4]))
 names(sigVars) <- names(singleVarResults)
 # Which are below 0.15?
 keepVars <- names(which(sigVars <= 0.15))
