@@ -40,6 +40,7 @@ while( temp <= length(mainTree$tip.label)){
   temp = temp + 1;
 }
 # Root the tree using your chosen outgroup species.
+mainTree <- root(mainTree, outgroup = "Tachyglossus aculeatus", resolve.root = T)
 
 ### TRAIT: NUMBER OF NODES.
 # Match mainTree with data subset. This will ensure the tree has only the tips we need for data analysis.
