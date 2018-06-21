@@ -125,5 +125,5 @@ dfCentroidSeqsWO <- dfCentroidSeqs
 dfCentroidSeqsWO <- RefSeqTrim(dfCentroidSeqsWO)
 
 # Remove objects that are not required for Section 5.
-rm(DNABinNN, first_time, iqr, lowerQuantile, upperQuantile, upperThreshold, distanceMatrix) 
+rm(DNABinNN, iqr, lowerQuantile, upperQuantile, upperThreshold, distanceMatrix) 
 rm(dfCentroidSeqs, dfCheckCentroidSeqs, dfGappySeqs, dfGeneticDistance, dfOutliers, dfMismatchOrders, dfMismatchFamilies, dfGoodOutgroups)

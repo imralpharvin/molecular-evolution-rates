@@ -39,10 +39,6 @@ dfLatitudeRange <- setDT(GetTraitSpecificDataBIN(dfLatitudeSpecies, 15))
 setnames(dfLatitudeMedian, "species_label", "species_name")
 setnames(dfLatitudeRange, "species_label", "species_name")
 
-#6. Get information for the trait.
-GetTraitInfo(dfLatitudeMedian, "median_lat", type = "continuous")
-GetTraitInfo(dfLatitudeRange, "range_lat", type = "continuous")
-
 
 #7. Datatable reorganization for dfFiltered.
 dfFiltered <- dfFiltered[, .(bin_uri, filtered_bin_size, recordID, order_name = order_label, family_name = family_label, genus_name = genus_label,
@@ -58,7 +54,7 @@ selectedTraits <- c("MSW05_Order","MSW05_Family","MSW05_Genus","MSW05_Binomial",
 traitData <- rawMammalData[selectedTraits]
 
 #4.Renaming columns
-colnames(traitData) <- c("order", "family", "genus", "species_name", "AdultBodyMass(g)", "AdultForearmLength(mm)", "BasalMetRate(mLO2hr)","LitterSize", "MaxLongevity(months)", "SexualMaturityAge(days)", "SocialGrpSize", "HabitatBreadth", "DietBreadth", "TrophicLevel", "ActivityCycle")
+colnames(traitData) <- c("order", "family", "genus", "species_name", "body_mass", "forearm_length", "basalmet_rate","litter_size", "max_longevity", "sexualmaturity_age", "socialgrp_size", "habitat_breadth", "diet_breadth", "trophic_level", "activity_cycle")
 
 #5.Changing -999 values to NA
 traitData[traitData == -999] <- NA
@@ -89,6 +85,21 @@ dfTraits<- dfTraits[!is.na(bin_uri)]
 missing <- dfTraits[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:16]
 missing <- which(missing == TRUE)
 dfTraits <-dfTraits[!missing]
+
+GetTraitInfo(dfTraits$median_lat)
+GetTraitInfo(dfTraits$range_lat)
+GetTraitInfo(dfTraits$body_mass)
+GetTraitInfo(dfTraits$forearm_length)
+GetTraitInfo(dfTraits$basalmet_rate)
+GetTraitInfo(dfTraits$litter_size)
+GetTraitInfo(dfTraits$max_longevity)
+GetTraitInfo(dfTraits$sexualmaturity_age)
+GetTraitInfo(dfTraits$socialgrp_size)
+GetTraitInfo(dfTraits$habitat_breadth)
+GetTraitInfo(dfTraits$diet_breadth)
+GetTraitInfo(dfTraits$trophic_level)
+GetTraitInfo(dfTraits$activity_cycle)
+
 
 
 dfPreCentroid <- merge(dfFiltered, dfTraits, by = "bin_uri")[, 1:8]
