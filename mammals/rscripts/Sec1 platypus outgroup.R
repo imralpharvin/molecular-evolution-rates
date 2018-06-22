@@ -52,7 +52,7 @@ dfRawSeqs <- bold_seqspec(taxon = "Mammalia", geo = "all")[, c("recordID", "bin_
 # Download outgroup species data from BOLD. These sequences may be used to root phylogenetic trees (depending if the taxa 
 # are an appropriate outgroup for the organismal group under study).
 # Enter your outgroup name between the "".
-outgroups <- c("Monotremata") 
+outgroups <- c("Ornithorhynchidae") 
 dfOutgroup <- bold_seqspec(taxon = outgroups, geo = "all")[, c("recordID", "bin_uri", "order_name", "family_name", 
                                                                "genus_name", "species_name", "lat", "nucleotides", 
                                                                "markercode")]

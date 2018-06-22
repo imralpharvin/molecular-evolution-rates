@@ -86,7 +86,7 @@ dfTraits <- dfTraits[match(mainTree$tip.label, dfTraits$species_name), ]
 # Use the PGLS function to perform single-variable (with number of nodes as a control variable) for all of the traits. 
 # e.g. branch_length ~ trait_of_interest + number_of_nodes
 # We will do this by looping through all of the columns containing the trait data using lapply.
-traits <- as.list(colnames(dfTraits[, 4:18]))
+traits <- as.list(colnames(dfTraits[, 4:12]))
 # Set to dataframe.
 dfTraits <- as.data.frame(dfTraits)
 
@@ -153,20 +153,20 @@ names(all.cc) <- rev(colnames(dfMultivariable))
 # Look at the results.
 all.cc
 # What seems like a good cut off point?
-len <- which(colnames(dfMultivariable) == "max_length")
+len <- which(colnames(dfMultivariable) == "sexualmaturity_age")
 dfMultivariableCut <- dfMultivariable[, 1:len] 
 # Finally, filter the original dfTraits datatable so only complete cases are kept.
 dfMultivariableCut <- dfMultivariableCut[complete.cases(dfMultivariableCut)]
 
 # Now check for data variability in this subset so our tests will actually work.
 # Examples:
-GetTraitInfo(dfMultivariableCut$median_lat)
-GetTraitInfo(dfMultivariableCut$salinity)
-GetTraitInfo(dfMultivariableCut$max_length)
+GetTraitInfo(dfMultivariableCut$sexualmaturity_age)
+GetTraitInfo(dfMultivariableCut$range_lat)
+GetTraitInfo(dfMultivariableCut$body_mass)
 
 # Check for multicollinearity between variables using the variance inflation factor (vif), if desired. 
 # Multicollinearity can lead to errors in the estimations of our coefficients.
-fit <- lm(branch_length ~ max_length + median_lat + salinity, data = dfMultivariableCut)
+fit <- lm(branch_length ~ sexualmaturity_age + range_lat + body_mass, data = dfMultivariableCut)
 vif(mod = fit)
 
 # MODEL SELECTION #
@@ -176,7 +176,7 @@ vif(mod = fit)
 
 # Now, let's perform a PGLS regression analysis using all of the variables.
 # This is our "global" model.
-global <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + median_lat + salinity + max_length)
+global <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + sexualmaturity_age + range_lat + body_mass)
 # Check that the phylogenetic residuals are normal.
 hist(global$phyres)
 qqnorm(global$phyres)
@@ -184,17 +184,17 @@ qqline(global$phyres)
 plot(x = fitted(global), y = global$phyres, pch = 5)
 
 # Remove variables one at a time see if the fit of the model improves. 
-fit1 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + median_lat + salinity)
+fit1 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + sexualmaturity_age + range_lat)
 # Compare the model to the global model using BIC.
 BIC(global, fit1)
 
 # Remove another variable.
-fit2 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + median_lat + max_length)
+fit2 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + sexualmaturity_age + body_mass)
 # Compare the model to the global model using BIC.
 BIC(global, fit1, fit2)
 
 # Remove another variable.
-fit3 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + salinity + max_length)
+fit3 <- PGLS(dfMultivariableCut, mainTree, branch_length ~ number_of_nodes + range_lat + body_mass)
 # Compare the model to the global model using BIC.
 BIC(global, fit1, fit2, fit3)
 
