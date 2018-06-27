@@ -1,5 +1,11 @@
 setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
+# Copyright (C) 2018 Ralph Arvin De Castro.
+# Program Description: 
 
+#############################################################################################################################
+
+##### SECTION 2: TRAIT ASSIGNMENT #####
+# This section is designed to assign trait data from BOLD and Pantheria and match it to BOLD sequence data.
 
 #For data manipulation:
 #install.packages("data.table")
@@ -11,18 +17,17 @@ source("GetTraitSpecificDataBIN.R")
 source("GetTraitSpecificData.R")
 source("GetTraitInfo.R")
 
-### TRAIT: MEDIAN LATITUDE ###
-# Currently, median latitude is the only trait whose information is taken from BOLD. The rest of the data will be obtained from FishBase.
-#1. Filtering for presence of a latitude value.
+#### TRAIT: MEDIAN LATITUDE ####
+# Filtering for presence of a latitude value.
 dfLatitudeSpecies <- dfFiltered[grep("[0-9]", lat)]
-#2. Convert the latitude (lat) column to number instead of character type
+# Convert the latitude (lat) column to number instead of character type
 dfLatitudeSpecies[, lat_num := as.numeric(lat)]
-#3. Conversion to absolute values before median latitude values are calculated.
+# Conversion to absolute values before median latitude values are calculated.
 dfLatitudeSpecies[, abs_lat_num := abs(lat_num)]
-
-#4. Determine a median latitude for each BIN using absolute values.
+# Determine a median latitude for each BIN using absolute values.
 dfLatitudeSpecies[, median_lat := median(abs_lat_num), keyby = bin_uri]
-#Range
+
+#### TRAIT: LATITUDE RANGE ####
 dfLatitudeSpecies[, max_lat := max(lat_num), keyby = bin_uri]
 dfLatitudeSpecies[, min_lat := min(lat_num), keyby = bin_uri]
 
