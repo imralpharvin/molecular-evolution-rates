@@ -9,9 +9,12 @@ packageVersion("ape")
 #install.packages("taxize")
 library("taxize")
 library(stringr)
+library(data.table)
 
 #Read fasta
+setwd("C:/Users/RalphArvin/Desktop")
 cytB <- readDNAStringSet("sequence.fasta")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/genbank")
 seq_name = names(cytB)
 sequence = paste(cytB)
 

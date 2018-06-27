@@ -63,12 +63,12 @@ iqr <- upperQuantile - lowerQuantile
 upperThreshold <- (iqr * 3) + upperQuantile
 lowerThreshold <-  lowerQuantile - (iqr * 3)
 # Extreme short branches.
-dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 17:18)]
+dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 51:52)]
 # Get the sequence information in case you want to BLAST the sequence (also, we aren't interested in outgroup species here,
 # that's why we are using dfCentroidSeqsNO).
 dfShort <- merge(dfShort, dfCentroidSeqsNO, by = "species_name")
 # Do the same for the extreme long branches.
-dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 17:18)]
+dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 51:52)]
 dfLong <- merge(dfLong, dfCentroidSeqsNO, by = "species_name")
 # Remove from dataset, if desired.
 dfTraits <- RemoveSequences(dfTraits, c(dfShort$species_name, dfLong$species_name))
@@ -86,7 +86,7 @@ dfTraits <- dfTraits[match(mainTree$tip.label, dfTraits$species_name), ]
 # Use the PGLS function to perform single-variable (with number of nodes as a control variable) for all of the traits. 
 # e.g. branch_length ~ trait_of_interest + number_of_nodes
 # We will do this by looping through all of the columns containing the trait data using lapply.
-traits <- as.list(colnames(dfTraits[, 4:12]))
+traits <- as.list(colnames(dfTraits[, 4:46]))
 # Set to dataframe.
 dfTraits <- as.data.frame(dfTraits)
 
