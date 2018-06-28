@@ -44,6 +44,9 @@ setnames(dfLatitudeMedian, "species_label", "species_name")
 setnames(dfLatitudeRange, "species_label", "species_name")
 dfFiltered <- dfFiltered[, .(bin_uri, filtered_bin_size, recordID, order_name = order_label, family_name = family_label, genus_name = genus_label,
                              species_name = species_label, nucleotides)]
+dfLatitudeMedian <- dfLatitudeMedian[, !c(1,3)]
+dfLatitudeRange <- dfLatitudeRange[, !c(1,3)]
+
 #### TRAIT: PANTHERIA XLSX ####
 # Read excel sheet data
 rawMammalData <- read_excel("Pantheria.xlsx")
@@ -62,8 +65,7 @@ traitData[traitData == -999] <- NA
 # Converting to data table
 traitData <- as.data.table(traitData)
 traitData <- traitData[,!c(1,2,3)]
-dfLatitudeMedian <- dfLatitudeMedian[, !c(1,3)]
-dfLatitudeRange <- dfLatitudeRange[, !c(1,3)]
+
 # Merge Species name
 mergedSpecies <- merge(dfFiltered, traitData, by = "species_name")
 # Single row per species
