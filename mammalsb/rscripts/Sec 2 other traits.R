@@ -32,12 +32,14 @@ placentalMammalData <- as.data.table(placentalMammalData)
 placentalMammalData <- unite(placentalMammalData, "species", c("genus","species_name"), sep = " ", remove = FALSE)
 
 
-
-
 amnioteMammalData <- read.csv("Amniote.csv")
 amnioteMammalData <- filter(amnioteMammalData, class == "Mammalia")
 amnioteMammalData<- amnioteMammalData[, c(1:5, 9:16, 22, 29, 32, 36)]
 amnioteMammalData[amnioteMammalData == -999] <- NA
+amnioteMammalData <- unite(amnioteMammalData, "species_name", c("genus","species"), sep = " ", remove = FALSE)
+amnioteMammalData <- rename(amnioteMammalData,  litter_size = litter_or_clutch_size_n, litters_pyear = litters_or_clutches_per_y, body_mass = adult_body_mass_g, max_longevity = maximum_longevity_y, gestation_length = gestation_d, weaning_age = weaning_d, neonate_bodymass = birth_or_hatching_weight_g, weaning_bodymass = weaning_weight_g, interbirth_length = inter_litter_or_interbirth_interval_y, adult_svl_length = adult_svl_cm, neonate_svl_length = birth_or_hatching_svl_cm, maturity_length = no_sex_maturity_d)
+
+
 #placentalMammalData <- unite(placentalMammalData, "species", c("genus","species_name"), sep = " ", remove = FALSE)
 
 # Filter the original data using the selectedTraits vector as the subset
@@ -45,6 +47,9 @@ amnioteMammalData[amnioteMammalData == -999] <- NA
 anageMammalData <- read_excel("anage.xlsx")
 anageMammalData<- anageMammalData[, c(4:8, 12:21)]
 anageMammalData <- filter(anageMammalData, Class == "Mammalia")
+anageMammalData <- rename(anageMammalData, class = Class, order = Order, family = Family, genus = Genus, species = Species, gestation_length = "Gestation/Incubation (days)", weaning_age = "Weaning (days)", litter_size = "Litter/Clutch size", litters_pyear = "Litters/Clutches per year", interbirth_length =  "Inter-litter/Interbirth interval", neonate_bodymass = "Birth weight (g)" , weaning_bodymass= "Weaning weight (g)", body_mass = "Adult weight (g)", growth_rate = "Growth rate (1/days)", max_longevity = "Maximum longevity (yrs)")
+
+
 
 
 eltonMammalData <- read_excel("eltontrait.xlsx")
