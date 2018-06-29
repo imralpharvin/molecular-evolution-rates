@@ -14,6 +14,8 @@ library(data.table)
 # For importing xslx data to data.frame 
 #install.packages("readxl")
 library("readxl")
+library(dplyr) 
+library(tidyr)
 source("GetTraitSpecificDataBIN.R")
 source("GetTraitSpecificData.R")
 source("GetTraitInfo.R")
@@ -27,10 +29,24 @@ colnames(placentalMammalData) <- c("order", "family", "genus", "species_name", "
 placentalMammalData[placentalMammalData == -999] <- NA
 # Converting to data table
 placentalMammalData <- as.data.table(placentalMammalData)
-traitData <- traitData[,!c(1,2,3)]
+placentalMammalData <- unite(placentalMammalData, "species", c("genus","species_name"), sep = " ", remove = FALSE)
+
+
+
 
 amnioteMammalData <- read.csv("Amniote.csv")
+amnioteMammalData <- filter(amnioteMammalData, class == "Mammalia")
+amnioteMammalData<- amnioteMammalData[, c(1:5, 9:16, 22, 29, 32, 36)]
+amnioteMammalData[amnioteMammalData == -999] <- NA
+#placentalMammalData <- unite(placentalMammalData, "species", c("genus","species_name"), sep = " ", remove = FALSE)
+
+# Filter the original data using the selectedTraits vector as the subset
 
 anageMammalData <- read_excel("anage.xlsx")
+anageMammalData<- anageMammalData[, c(4:8, 12:21)]
+anageMammalData <- filter(anageMammalData, Class == "Mammalia")
+
+
 eltonMammalData <- read_excel("eltontrait.xlsx")
 
+   
