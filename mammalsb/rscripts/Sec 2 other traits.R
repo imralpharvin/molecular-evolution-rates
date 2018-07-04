@@ -27,7 +27,7 @@ placentalMammalData <- read_excel("placental.xlsx")
 # Remove columns that are not needed for analysis
 placentalMammalData$refs <- NULL
 # Rename columns
-colnames(placentalMammalData) <- c("order", "family", "genus", "species_name", "body_mass", "gestation_length", "neonate_bodymass", "weaning_age", "weaning_bodymass", "firstbirth_age", "max_longevity", "litter_size", "litters_pyear");
+colnames(placentalMammalData) <- c("order", "family", "genus", "species", "body_mass", "gestation_length", "neonate_bodymass", "weaning_age", "weaning_bodymass", "firstbirth_age", "max_longevity", "litter_size", "litters_pyear");
 # Changing -999 values to NA
 placentalMammalData[placentalMammalData == -999] <- NA
 # Converting to data table
@@ -38,7 +38,9 @@ placentalMammalData <- unite(placentalMammalData, "species", c("genus","species_
 placentalMammalData <- placentalMammalData[, gestation_length := gestation_length*30]
 placentalMammalData <- placentalMammalData[, weaning_age := weaning_age *30]
 placentalMammalData <- placentalMammalData[, firstbirth_age := firstbirth_age *30]
-
+# Data table reorganization
+placentalMammalData <- placentalMammalData[, !c(1,2,4,5)]
+ 
 ##### Amniote mammal data #####
 # Read mammal data
 amnioteMammalData <- read.csv("Amniote.csv")
@@ -58,6 +60,8 @@ amnioteMammalData <- rename(amnioteMammalData,  litter_size = litter_or_clutch_s
 amnioteMammalData <- amnioteMammalData[, interbirth_interval := interbirth_interval *365]
 # Convert years to months
 amnioteMammalData <- amnioteMammalData[, max_longevity := max_longevity *12]
+# Data table reorganization
+amnioteMammalData <- amnioteMammalData[, !c(1,2,3,5,6)]
 
 ##### Anage  mammal data #####
 # Filter the original data using the selectedTraits vector as the subset
@@ -75,6 +79,8 @@ anageMammalData <- unite(anageMammalData, "species_name", c("genus","species"), 
 anageMammalData <- as.data.table(anageMammalData)
 # Convert years to months
 anageMammalData <- anageMammalData[, max_longevity := max_longevity *12]
+# Data table reorganization
+anageMammalData <- anageMammalData[, !c(1,2,3,5,6)]
 
 eltonMammalData <- read_excel("eltontrait.xlsx")
 
