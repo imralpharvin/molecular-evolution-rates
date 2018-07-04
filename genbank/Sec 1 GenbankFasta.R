@@ -39,7 +39,7 @@ dfcytB[, c("split1", "split2") := tstrsplit(sequence, "^[-N]+")][split1 == "", s
 dfcytB[, c("split1","split2") := NULL]
 dfcytB[, sequence := tstrsplit(sequence, "[-N]+$")]
 
-#Filter 3:
+#Filter 3: Internal N percent
 dfcytB[, internal_gapN := str_count(sequence, c("[N-]"))]
 # Remove sequence if the number of Ns or gaps is greater than 1% (0.01) of the total length of the sequence.
 dfcytB <- dfcytB[, percentage_gapN := internal_gapN/nchar(sequence)][!percentage_gapN > 0.01]
@@ -48,3 +48,6 @@ dfcytB[, c("internal_gapN", "percentage_gapN") := NULL]
 
 #Filter 4: Remove short and long sequences
 dfcytB <- dfcytB[nchar(gsub("-", "", sequence)) %between% c(500, 1500)]
+
+dfcytB[, length := (lat_num), keyby = bin_uri]
+dfcytB$length <- d

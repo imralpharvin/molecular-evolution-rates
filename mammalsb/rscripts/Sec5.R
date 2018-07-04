@@ -63,12 +63,12 @@ iqr <- upperQuantile - lowerQuantile
 upperThreshold <- (iqr * 3) + upperQuantile
 lowerThreshold <-  lowerQuantile - (iqr * 3)
 # Extreme short branches.
-dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 51:52)]
+dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 50:51)]
 # Get the sequence information in case you want to BLAST the sequence (also, we aren't interested in outgroup species here,
 # that's why we are using dfCentroidSeqsNO).
 dfShort <- merge(dfShort, dfCentroidSeqsNO, by = "species_name")
 # Do the same for the extreme long branches.
-dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 51:52)]
+dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 50:51)]
 dfLong <- merge(dfLong, dfCentroidSeqsNO, by = "species_name")
 # Remove from dataset, if desired.
 dfTraits <- RemoveSequences(dfTraits, c(dfShort$species_name, dfLong$species_name))

@@ -23,7 +23,7 @@
 ##### SECTION 4: ALIGNMENT QUALITY CHECKING #####
 # This section performs alignment quality control checking by removing extremely gappy sequences, outliers, and BINs that have neighbours in a 
 # different taxonomic group (i.e. they may be contaminated or may have been misidentified).
-setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammals/rscripts")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
 ### PACKAGES REQUIRED ###
 # For data manipulation:
 #install.packages("data.table")

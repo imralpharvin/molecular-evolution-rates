@@ -19,7 +19,7 @@
 ##### SECTION 3: CENTROID SEQUENCE DETERMINATION #####
 # This section is designed to select a centroid sequence for each BIN. A centroid sequence is the sequence in a BIN with minimum sum of pairwise
 # distance to all other sequences in the BIN. It will serve as a representative sequence for the BIN/species.
-setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammals/rscripts")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
 
 ### PACKAGES REQUIRED ###
 # For data manipulation:

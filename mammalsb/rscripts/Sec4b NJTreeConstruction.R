@@ -1,4 +1,4 @@
-setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammals/rscripts")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
 
 
 #install.packages("ape")
