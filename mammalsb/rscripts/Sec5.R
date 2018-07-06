@@ -1,4 +1,5 @@
 setwd("C:/Users/imralpharvin/Desktop/work-s2018/mammalsb/rscripts")
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
 
 
 #install.packages("data.table")
@@ -86,7 +87,7 @@ dfTraits <- dfTraits[match(mainTree$tip.label, dfTraits$species_name), ]
 # Use the PGLS function to perform single-variable (with number of nodes as a control variable) for all of the traits. 
 # e.g. branch_length ~ trait_of_interest + number_of_nodes
 # We will do this by looping through all of the columns containing the trait data using lapply.
-traits <- as.list(colnames(dfTraits[,53,32:33]))
+traits <- as.list(colnames(dfTraits[,4:29,31:44]))
 # Set to dataframe.
 dfTraits <- as.data.frame(dfTraits)
 
