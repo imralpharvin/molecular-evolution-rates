@@ -113,7 +113,7 @@ dfLatitudeSpecies[, lat_num := as.numeric(lat)]
 ######################################################################################################################
 ##### Traits ####
 # Single row per species
-dfFilteredSingle <- dfcytB[!duplicated(species_name)][, .(accession_number, species_name)]
+dfFilteredSingle <- df16s[!duplicated(species_name)][, .(accession_number, species_name)]
 
 #### TRAIT: BODY MASS ####
 pantheriaTrait <- pantheriaMammalData[, c("species_name", "body_mass")]
@@ -632,12 +632,15 @@ GetTraitInfo(dfTraits$terrestriality)
 GetTraitInfo(dfTraits$trophic_level)
 
 #Take out traits that does not meet the criteria
+dfTraits$dispersal_age <- NULL
 dfTraits$maturity_length <- NULL
 dfTraits$imr_pyear <- NULL
 dfTraits$mrdt <- NULL
 dfTraits$weaning_bodylength <- NULL
+dfTraits$neonate_headbodylength <- NULL
+dfTraits$neonate_svl_length <- NULL
 
-dfPreCentroid <- merge(dfcytB, dfTraits, by = "species_name")[, 1:3]
+dfPreCentroid <- merge(df16s, dfTraits, by = "species_name")[, 1:3]
 # Dataframe reorganization and renaming.
 setnames(dfPreCentroid, "accession_number.x", "accession_number")
 

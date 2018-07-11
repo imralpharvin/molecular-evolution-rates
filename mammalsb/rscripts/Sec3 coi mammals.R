@@ -39,9 +39,9 @@ library(foreach)
 source("RefSeqTrim.R")
 
 #############################################################################################################################
-
+dfPreCentroid[, num_seq := length(accession_number), by = species_name]
 # Subset dataframe to find BINs with more than one sequence.
-dfLargeBins <- dfPreCentroid[filtered_bin_size > 1]
+dfLargeBins <- dfPreCentroid[num_seq > 1]
 # If there is at least one BIN with more than one sequence...
 if (nrow(dfLargeBins) > 0) {
   # Remove gaps from the sequences.
