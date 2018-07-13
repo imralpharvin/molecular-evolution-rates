@@ -1,0 +1,610 @@
+setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
+setwd("C:/Users/imralpharvin/Desktop/work-s2018/mammalsb/rscripts")
+# Copyright (C) 2018 Ralph Arvin De Castro.
+# Program Description: 
+
+#############################################################################################################################
+
+##### SECTION 2: TRAIT ASSIGNMENT #####
+# This section is designed to assign trait data from BOLD and Pantheria and match it to BOLD sequence data.
+
+#For data manipulation:
+#install.packages("data.table")
+library(data.table)
+# For importing xslx data to data.frame 
+#install.packages("readxl")
+library("readxl")
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("tidyr")
+library(tidyr)
+source("GetTraitSpecificDataBIN.R")
+source("GetTraitSpecificData.R")
+source("GetTraitInfo.R")
+
+##########################################GETTING ALL SOURCES############################################
+
+
+##### Source 1: Amniote #####
+# Read mammal data
+amnioteMammalData <- read.csv("Amniote.csv")
+# Filter mammals
+amnioteMammalData <- filter(amnioteMammalData, class == "Reptilia")
+# Subset columns needed for analysis
+amnioteMammalData<- amnioteMammalData[, c(1:5, 8:13, 15, 17:18, 20:21, 23, 25:27, 29:33, 35:36)]
+# Setting null valuescol
+amnioteMammalData[amnioteMammalData == -999] <- NA
+# Converting to data table
+amnioteMammalData <- as.data.table(amnioteMammalData)
+# Setting species name
+amnioteMammalData <- unite(amnioteMammalData, "species_name", c("genus","species"), sep = " ", remove = FALSE)
+# Rename columns
+amnioteMammalData <- rename(amnioteMammalData,  female_maturity = female_maturity_d , litter_size = litter_or_clutch_size_n,  litters_pyear = litters_or_clutches_per_y, body_mass = adult_body_mass_g, max_longevity = maximum_longevity_y, hatching_weight = birth_or_hatching_weight_g, gestation_length = gestation_d, egg_mass = egg_mass_g, incubation = incubation_d,  male_maturity = male_maturity_d ,female_body_mass = female_body_mass_g, egg_width = egg_width_mm, egg_length = egg_length_mm , adult_svl_length = adult_svl_cm , male_svl_length = male_svl_cm , female_svl_length = female_svl_cm , maturity_length = no_sex_maturity_d)
+# Convert years to months
+amnioteMammalData <- amnioteMammalData[, max_longevity := max_longevity *12]
+# Data table reorganization
+amnioteMammalData <- amnioteMammalData[, !c(1,2,3,5,6)]
+
+##### Source 4: Anage  #####
+# Filter the original data using the selectedTraits vector as the subset
+# Read mammal data
+anageMammalData <- read_excel("anage.xlsx")
+# Filter mammals
+anageMammalData <- filter(anageMammalData, Class == "Reptilia")
+# Subset columns needed for analysis
+anageMammalData<- anageMammalData[, c(4:8, 10:12, 14:15, 17, 19:21, 28:29)]
+# Rename columns
+anageMammalData <- rename(anageMammalData, class = Class, order = Order, family = Family, genus = Genus, species = Species, female_maturity = "Female maturity (days)" , male_maturity = "Male maturity (days)", gestation_length = "Gestation/Incubation (days)", litter_size = "Litter/Clutch size", litters_pyear = "Litters/Clutches per year", neonate_bodymass = "Birth weight (g)" ,  body_mass = "Adult weight (g)", growth_rate = "Growth rate (1/days)", max_longevity = "Maximum longevity (yrs)",  metabolic_rate = "Metabolic rate (W)", body_mass = "Body mass (g)")
+# Setting species name
+anageMammalData <- unite(anageMammalData, "species_name", c("genus","species"), sep = " ", remove = FALSE)
+# Converting to data table
+anageMammalData <- as.data.table(anageMammalData)
+# Convert years to months
+anageMammalData <- anageMammalData[, max_longevity := max_longevity *12]
+# Data table reorganization
+anageMammalData <- anageMammalData[, !c(1,2,3,5,6)]
+
+##### Source 5: BOLD #####
+# Filtering for presence of a latitude value.
+dfLatitudeSpecies <- dfFiltered[grep("[0-9]", lat)]
+# Convert the latitude (lat) column to number instead of character type
+dfLatitudeSpecies[, lat_num := as.numeric(lat)]
+
+
+######################################################################################################################
+##### Traits ####
+# Single row per species
+dfFilteredSingle <- dfFiltered[!duplicated(species_name)][, .(bin_uri, species_name, filtered_bin_size)]
+
+#### TRAIT: BODY MASS ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "body_mass")]
+placentalTrait <- placentalMammalData[, c("species_name", "body_mass")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "body_mass")]
+anageTrait <- anageMammalData[, c("species_name", "body_mass")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$body_mass =rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfBodyMass <- dfTrait[,!c(2:7)]
+
+#### TRAIT: FOREARM LENGTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "forearm_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(forearm_length)]
+dfForearmLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HEADBODY LENGTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "headbody_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(headbody_length)]
+dfHeadBodyLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: EYE OPENING AGE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "eyeopening_age")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(eyeopening_age)]
+dfEyeOpeningAge <- dfTrait[,!c(2:3)]
+
+#### TRAIT: BMR Rate ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "bmr_rate")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(bmr_rate)]
+dfBmrRate <- dfTrait[,!c(2:3)]
+
+#### TRAIT: BMR Mass ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "bmr_mass")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(bmr_mass)]
+dfBmrMass <- dfTrait[,!c(2:3)]
+
+#### TRAIT: MAX LONGEVITY ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "max_longevity")]
+placentalTrait <- placentalMammalData[, c("species_name", "max_longevity")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "max_longevity")]
+anageTrait <- anageMammalData[, c("species_name", "max_longevity")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$max_longevity = rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfMaxLongevity <- dfTrait[,!c(2:7)]
+
+#### TRAIT: Sexual Maturity Age ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "sexualmaturity_age")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(sexualmaturity_age)]
+dfSexualMaturityAge <- dfTrait[,!c(2:3)]
+
+#### TRAIT: Snout to vent Length ####
+amnioteTrait <- amnioteMammalData[, c("species_name", "adult_svl_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, amnioteTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(adult_svl_length)]
+dfAdultSvlLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: Maturity ####
+amnioteTrait <- amnioteMammalData[, c("species_name", "maturity_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, amnioteTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(maturity_length)]
+dfMaturityLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: Growth rate ####
+anageTrait <- anageMammalData[, c("species_name", "growth_rate")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(growth_rate)]
+dfGrowthRate<- dfTrait[,!c(2:3)]
+
+
+#### TRAIT: Imr Per year ####
+anageTrait <- anageMammalData[, c("species_name", "imr_pyear")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(imr_pyear)]
+dfImrPerYear<- dfTrait[,!c(2:3)]
+
+#### TRAIT: Mrdt ####
+anageTrait <- anageMammalData[, c("species_name", "mrdt")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(mrdt)]
+dfMrdt<- dfTrait[,!c(2:3)]
+
+#### TRAIT: Metabolic rate ####
+anageTrait <- anageMammalData[, c("species_name", "metabolic_rate")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(metabolic_rate)]
+dfMetabolicRate<- dfTrait[,!c(2:3)]
+
+#### TRAIT: First birth age ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "firstbirth_age")]
+placentalTrait <- placentalMammalData[, c("species_name", "firstbirth_age")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:5]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$firstbirth_age=rowMeans(dfTrait[,c(4:5)], na.rm=TRUE)
+dfFirstBirthAge <- dfTrait[,!c(2:5)]
+
+#### TRAIT: Gestation Length ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "gestation_length")]
+placentalTrait <- placentalMammalData[, c("species_name", "gestation_length")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "gestation_length")]
+anageTrait <- anageMammalData[, c("species_name", "gestation_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$gestation_length =rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfGestationLength <- dfTrait[,!c(2:7)]
+
+#### TRAIT: Interbirth Interval ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "interbirth_interval")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "interbirth_interval")]
+anageTrait <- anageMammalData[, c("species_name", "interbirth_interval")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:6]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$interbirth_interval =rowMeans(dfTrait[,c(4:6)], na.rm=TRUE)
+dfInterbirthInterval <- dfTrait[,!c(2:6)]
+
+#### TRAIT: LITTER SIZE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "litter_size")]
+placentalTrait <- placentalMammalData[, c("species_name", "litter_size")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "litter_size")]
+anageTrait <- anageMammalData[, c("species_name", "litter_size")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$litter_size =rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfLitterSize <- dfTrait[,!c(2:7)]
+
+#### TRAIT: LITTER PER YEAR ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "litters_pyear")]
+placentalTrait <- placentalMammalData[, c("species_name", "litters_pyear")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "litters_pyear")]
+anageTrait <- anageMammalData[, c("species_name", "litters_pyear")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$litters_pyear =rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfLittersPerYear <- dfTrait[,!c(2:7)]
+
+#### TRAIT: NEONATE BODY MASS ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "neonate_bodymass")]
+placentalTrait <- placentalMammalData[, c("species_name", "neonate_bodymass")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "neonate_bodymass")]
+anageTrait <- anageMammalData[, c("species_name", "neonate_bodymass")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , placentalTrait, amnioteTrait, anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:7]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$neonate_bodymass =rowMeans(dfTrait[,c(4:7)], na.rm=TRUE)
+dfNeonateBodyMass <- dfTrait[,!c(2:7)]
+
+#### TRAIT: NEONATE HEAD BODY LENGTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "neonate_headbodylength")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(neonate_headbodylength)]
+dfNeonateHeadBodyLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: NEONATE SVL LENGTH ####
+amnioteTrait <- amnioteMammalData[, c("species_name", "neonate_svl_length")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, amnioteTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(neonate_svl_length)]
+dfNeonateSvlLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: TEAT NUMBER ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "teatnumber")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(teatnumber)]
+dfTeatNumber <- dfTrait[,!c(2:3)]
+
+#### TRAIT: WEANING AGE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "weaning_age")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "weaning_age")]
+placentalTrait <- placentalMammalData[, c("species_name", "weaning_age")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , amnioteTrait, placentalTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:6]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$weaning_age=rowMeans(dfTrait[,c(4:6)], na.rm=TRUE)
+dfWeaningAge <- dfTrait[,!c(2:6)]
+
+#### TRAIT: WEANING BODY MASS ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "weaning_bodymass")]
+amnioteTrait <- amnioteMammalData[, c("species_name", "weaning_bodymass")]
+placentalTrait <- placentalMammalData[, c("species_name", "weaning_bodymass")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , amnioteTrait, placentalTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:6]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$weaning_bodymass=rowMeans(dfTrait[,c(4:6)], na.rm=TRUE)
+dfWeaningBodyMass <- dfTrait[,!c(2:6)]
+
+#### TRAIT: WEANING BODY LENGTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "weaning_bodylength")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(weaning_bodylength)]
+dfWeaningBodyLength <- dfTrait[,!c(2:3)]
+
+#### TRAIT: DISPERSAL AGE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "dispersal_age")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(dispersal_age)]
+dfDispersalAge <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HOME_RANGE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "home_range")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(home_range)]
+dfHomeRange <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HOME_RANGE INDIVIDUAL ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "home_range_indiv")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(home_range_indiv)]
+dfHomeRangeIndividual <- dfTrait[,!c(2:3)]
+
+#### TRAIT: POPULATION DENSITY ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "pop_density")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(pop_density)]
+dfPopulationDensity <- dfTrait[,!c(2:3)]
+
+#### TRAIT: POPULATION GROUP SIZE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "pop_grpsize")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(pop_grpsize)]
+dfPopulationGroupSize <- dfTrait[,!c(2:3)]
+
+#### TRAIT: SOCIAL GROUP SIZE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "social_grpsize")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(social_grpsize)]
+dfSocialGroupSize <- dfTrait[,!c(2:3)]
+
+#### TRAIT: MEDIAN LATITUDE ####
+# Conversion to absolute values before median latitude values are calculated.
+dfLatitudeSpecies[, abs_lat_num := abs(lat_num)]
+# Determine a median latitude for each BIN using absolute values.
+dfLatitudeSpecies[, median_lat := median(abs_lat_num), keyby = bin_uri]
+
+#### TRAIT: LATITUDE RANGE ####
+# Get maximum latitude for each bin
+dfLatitudeSpecies[, max_lat := max(lat_num), keyby = bin_uri]
+# Get minimum latitude for each bin
+dfLatitudeSpecies[, min_lat := min(lat_num), keyby = bin_uri]
+# Subtract maximum latitude and minimum latitude
+dfLatitudeSpecies[, range_lat := max_lat - min_lat, keyby = bin_uri]
+# Datatable organization
+dfLatitudeSpecies <- dfLatitudeSpecies[, !c(14,15,17,18)]
+# Get the trait specific datatable.
+dfLatitudeMedian <- setDT(GetTraitSpecificDataBIN(dfLatitudeSpecies, 14))
+dfLatitudeRange <- setDT(GetTraitSpecificDataBIN(dfLatitudeSpecies, 15))
+# Datatable reorganization
+setnames(dfLatitudeMedian, "species_label", "species_name")
+setnames(dfLatitudeRange, "species_label", "species_name")
+dfFiltered <- dfFiltered[, .(bin_uri, filtered_bin_size, recordID, order_name = order_label, family_name = family_label, genus_name = genus_label,
+                             species_name = species_label, nucleotides)]
+dfLatitudeMedian <- dfLatitudeMedian[, !c(1,3)]
+dfLatitudeRange <- dfLatitudeRange[, !c(1,3)]
+
+#### TRAIT: GR AREA ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_area")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_area)]
+dfGrArea <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MAXIMUM LATITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_maxlat")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_maxlat)]
+dfGrMaxLat <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MINIMUM LATITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_minlat")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_minlat)]
+dfGrMinLat <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MIDDLE RANGE LATITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_midrangelat")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_midrangelat)]
+dfGrMidRangeLat <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MAXIMUM LONGITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_maxlong")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_maxlong)]
+dfGrMaxLong <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MINIMUM LONGITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_minlong")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_minlong)]
+dfGrMinLong <- dfTrait[,!c(2:3)]
+
+#### TRAIT: GR MID RANGE LONGITUDE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "GR_midrangelong")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(GR_midrangelong)]
+dfGrMidRangeLong <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HUMAN POPULATION DENSITY MINIMUM ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "hupopden_min")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(hupopden_min)]
+dfHumanPopulationMin <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HUMAN POPULATION DENSITY MEAN ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "hupopden_mean")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(hupopden_mean)]
+dfHumanPopulationMean <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HUMAN POPULATION DENSITY 5p ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "hupopden_5p")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(hupopden_5p)]
+dfHumanPopulation5p <- dfTrait[,!c(2:3)]
+
+#### TRAIT: HUMAN POPULATION DENSITY CHANGE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "hupopden_change")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(hupopden_change)]
+dfHumanPopulationChange <- dfTrait[,!c(2:3)]
+
+#### TRAIT: PRECIPITATION MEAN ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "precip_mean")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(precip_mean)]
+dfPrecipitationMean <- dfTrait[,!c(2:3)]
+
+#### TRAIT: Temperature Mean ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "temp_mean")]
+anageTrait <- anageMammalData[, c("species_name", "temp_mean")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait , anageTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+missingbm <- dfTrait[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:5]
+missingbm <- which(missingbm == TRUE)
+dfTrait <-dfTrait[!missingbm]
+dfTrait$temp_mean=rowMeans(dfTrait[,c(4:5)], na.rm=TRUE)
+dfTemperatureMean <- dfTrait[,!c(2:5)]
+
+#### TRAIT:AET MEAN ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "AET_mean")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(AET_mean)]
+dfAETMean <- dfTrait[,!c(2:3)]
+
+#### TRAIT:PET MEAN ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "PET_mean")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(PET_mean)]
+dfPETMean <- dfTrait[,!c(2:3)]
+
+#### TRAIT:ACTIVITY CYCLE ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "activity_cycle")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(activity_cycle)]
+dfTrait$activity_cycle <- as.factor(dfTrait$activity_cycle)
+dfActivityCycle <- dfTrait[,!c(2:3)]
+
+#### TRAIT:DIET BREADTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "diet_breadth")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(diet_breadth)]
+dfTrait$diet_breadth <- as.factor(dfTrait$diet_breadth)
+dfDietBreadth <- dfTrait[,!c(2:3)]
+
+#### TRAIT:HABITAT BREADTH ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "habitat_breadth")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(habitat_breadth)]
+dfTrait$habitat_breadth <- as.factor(dfTrait$habitat_breadth)
+dfHabitatBreadth <- dfTrait[,!c(2:3)]
+
+#### TRAIT:TERRESTRIALITY ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "terrestriality")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(terrestriality)]
+dfTrait$terrestriality <- as.factor(dfTrait$terrestriality)
+dfTerrestriality <- dfTrait[,!c(2:3)]
+
+#### TRAIT:TROPHIC LEVEL ####
+pantheriaTrait <- pantheriaMammalData[, c("species_name", "trophic_level")]
+dfTrait <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, pantheriaTrait))
+dfTrait<- dfTrait[!is.na(bin_uri)]
+dfTrait<- dfTrait[!is.na(trophic_level)]
+dfTrait$trophic_level <- as.factor(dfTrait$trophic_level)
+dfTrophicLevel <- dfTrait[,!c(2:3)]
+
+######################################################################################################################
+#### Merging traits ####
+dfTraits <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, dfBodyMass, dfForearmLength, dfHeadBodyLength, dfEyeOpeningAge, dfBmrRate, dfBmrMass, dfMaxLongevity, dfSexualMaturityAge, dfAdultSvlLength, dfMaturityLength, dfGrowthRate, dfImrPerYear,dfMrdt, dfMetabolicRate, dfFirstBirthAge, dfGestationLength, dfInterbirthInterval, dfLitterSize, dfLittersPerYear, dfNeonateBodyMass, dfNeonateHeadBodyLength, dfNeonateSvlLength, dfTeatNumber, dfWeaningAge, dfWeaningBodyMass, dfWeaningBodyLength, dfDispersalAge, dfHomeRange, dfHomeRangeIndividual, dfPopulationDensity, dfPopulationGroupSize, dfSocialGroupSize, dfLatitudeMedian, dfLatitudeRange, dfGrArea, dfGrMaxLat, dfGrMinLat, dfGrMidRangeLat, dfGrMaxLong, dfGrMinLong, dfGrMidRangeLong, dfHumanPopulationMin, dfHumanPopulationMean, dfHumanPopulation5p, dfHumanPopulationChange, dfPrecipitationMean, dfTemperatureMean, dfAETMean, dfPETMean, dfActivityCycle, dfDietBreadth, dfHabitatBreadth, dfTerrestriality, dfTrophicLevel))
+dfTraits<- dfTraits[!is.na(bin_uri)]
+missing <- dfTraits[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:54]
+missing <- which(missing == TRUE)
+dfTraits <-dfTraits[!missing]
+
+GetTraitInfo(dfTraits$body_mass)
+GetTraitInfo(dfTraits$forearm_length)
+GetTraitInfo(dfTraits$headbody_length)
+GetTraitInfo(dfTraits$eyeopening_age)
+GetTraitInfo(dfTraits$bmr_rate)
+GetTraitInfo(dfTraits$bmr_mass)
+GetTraitInfo(dfTraits$max_longevity)
+GetTraitInfo(dfTraits$sexualmaturity_age)
+GetTraitInfo(dfTraits$adult_svl_length)
+GetTraitInfo(dfTraits$maturity_length)
+GetTraitInfo(dfTraits$growth_rate)
+GetTraitInfo(dfTraits$imr_pyear)
+GetTraitInfo(dfTraits$mrdt)
+GetTraitInfo(dfTraits$metabolic_rate)
+GetTraitInfo(dfTraits$firstbirth_age)
+GetTraitInfo(dfTraits$gestation_length)
+GetTraitInfo(dfTraits$litter_size)
+GetTraitInfo(dfTraits$litters_pyear)
+GetTraitInfo(dfTraits$neonate_bodymass)
+GetTraitInfo(dfTraits$neonate_headbodylength)
+GetTraitInfo(dfTraits$neonate_svl_length)
+GetTraitInfo(dfTraits$teatnumber)
+GetTraitInfo(dfTraits$weaning_bodylength)
+GetTraitInfo(dfTraits$dispersal_age)
+GetTraitInfo(dfTraits$home_range)
+GetTraitInfo(dfTraits$home_range_indiv)
+GetTraitInfo(dfTraits$pop_density)
+GetTraitInfo(dfTraits$pop_grpsize)
+GetTraitInfo(dfTraits$social_grpsize)
+GetTraitInfo(dfTraits$median_lat)
+GetTraitInfo(dfTraits$range_lat)
+GetTraitInfo(dfTraits$GR_area)
+GetTraitInfo(dfTraits$GR_maxlat)
+GetTraitInfo(dfTraits$GR_minlat)
+GetTraitInfo(dfTraits$GR_midrangelat)
+GetTraitInfo(dfTraits$GR_maxlong)
+GetTraitInfo(dfTraits$GR_minlong)
+GetTraitInfo(dfTraits$GR_midrangelong)
+GetTraitInfo(dfTraits$hupopden_min)
+GetTraitInfo(dfTraits$hupopden_mean)
+GetTraitInfo(dfTraits$hupopden_5p)
+GetTraitInfo(dfTraits$hupopden_change)
+GetTraitInfo(dfTraits$precip_mean)
+GetTraitInfo(dfTraits$temp_mean)
+GetTraitInfo(dfTraits$AET_mean)
+GetTraitInfo(dfTraits$PET_mean)
+#Factors
+GetTraitInfo(dfTraits$activity_cycle)
+GetTraitInfo(dfTraits$diet_breadth)
+GetTraitInfo(dfTraits$habitat_breadth)
+GetTraitInfo(dfTraits$terrestriality)
+GetTraitInfo(dfTraits$trophic_level)
+
+#Take out traits that does not meet the criteria
+dfTraits[diet_breadth == "8", diet_breadth := NA][, diet_breadth := droplevels(diet_breadth)]
+dfTraits$maturity_length <- NULL
+dfTraits$imr_pyear <- NULL
+dfTraits$mrdt <- NULL
+dfTraits$weaning_bodylength <- NULL
+dfTraits$dispersal_age <- NULL
+
+dfPreCentroid <- merge(dfFiltered, dfTraits, by = "species_name")[, 1:8]
+# Dataframe reorganization and renaming.
+setnames(dfPreCentroid, "bin_uri.x", "bin_uri")
+setnames(dfPreCentroid, "filtered_bin_size.x", "filtered_bin_size")
+
+rm(dfFilteredSingle, dfBodyMass, dfForearmLength, dfHeadBodyLength, dfEyeOpeningAge, dfBmrRate, dfBmrMass, dfMaxLongevity, dfSexualMaturityAge, dfAdultSvlLength, dfMaturityLength, dfGrowthRate, dfImrPerYear,dfMrdt, dfMetabolicRate, dfFirstBirthAge, dfGestationLength, dfInterbirthInterval, dfLitterSize, dfLittersPerYear, dfNeonateBodyMass, dfNeonateHeadBodyLength, dfNeonateSvlLength, dfTeatNumber, dfWeaningAge, dfWeaningBodyMass, dfWeaningBodyLength, dfDispersalAge, dfHomeRange, dfHomeRangeIndividual, dfPopulationDensity, dfPopulationGroupSize, dfSocialGroupSize, dfLatitudeMedian, dfLatitudeRange, dfGrArea, dfGrMaxLat, dfGrMinLat, dfGrMidRangeLat, dfGrMaxLong, dfGrMinLong, dfGrMidRangeLong, dfHumanPopulationMin, dfHumanPopulationMean, dfHumanPopulation5p, dfHumanPopulationChange, dfPrecipitationMean, dfTemperatureMean, dfAETMean, dfPETMean, dfActivityCycle, dfDietBreadth, dfHabitatBreadth, dfTerrestriality, dfTrophicLevel)
+rm(pantheriaMammalData, placentalMammalData, amnioteMammalData, anageMammalData, pantheriaTrait, amnioteTrait, placentalTrait, anageTrait)
+rm(selectedTraits, missing, missingbm); rm( dfLatitudeSpecies, dfResolve, dfTrait)

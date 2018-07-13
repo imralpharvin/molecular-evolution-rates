@@ -20,6 +20,7 @@
 # This section is designed to select a centroid sequence for each BIN. A centroid sequence is the sequence in a BIN with minimum sum of pairwise
 # distance to all other sequences in the BIN. It will serve as a representative sequence for the BIN/species.
 setwd("C:/Users/RalphArvin/Desktop/work-s2018/mammalsb/rscripts")
+setwd("C:/Users/imralpharvin/Desktop/work-s2018/mammalsb/rscripts")
 
 ### PACKAGES REQUIRED ###
 # For data manipulation:
@@ -36,23 +37,27 @@ library(muscle)
 #install.packages("foreach")
 library(foreach)
 # Load the function(s) designed for this script:
-source("RefSeqTrim2.R")
+source("RefSeqTrim.R")
 
 #############################################################################################################################
-
+dfPreCentroid[, num_seq := length(accession_number), by = species_name]
+# Subset dataframe to find BINs with more than one sequence.
+dfLargeBins <- dfPreCentroid[num_seq > 1]
+# If there is at least one BIN with more than one sequence...
+if (nrow(dfLargeBins) > 0) {
   # Remove gaps from the sequences.
-  dfPreCentroid[, nucleotides := gsub("-", "", nucleotides)] 
+  dfPreCentroid[, sequence := gsub("-", "", sequence)] 
   # Subset out the BINs with more than 1 sequence.
-  dfCentroidSeqs <- dfPreCentroid[bin_uri %in% dfLargeBins$bin_uri]
+  dfCentroidSeqs <- dfPreCentroid[accession_number %in% dfLargeBins$accession_number]
   # We also have to create another separate dataframe with BINs that only have one sequence, called dfSingletons.
-  dfSingletons <- dfPreCentroid[!bin_uri %in% dfLargeBins$bin_uri]
+  dfSingletons <- dfPreCentroid[!accession_number %in% dfLargeBins$accession_number]
   # We then take the dfCentroidSeqs sequences and group them by BIN.
-  largeBinList <- split(dfCentroidSeqs, by = "bin_uri")
+  largeBinList <- split(dfCentroidSeqs, by = "accession_number")
   # Convert all the sequences in largeBinList to DNAStringSet format for 
   # the multiple sequence alignment.
-  DNAStringSetList <- lapply(largeBinList, function(x) DNAStringSet(x$nucleotides))
+  DNAStringSetList <- lapply(largeBinList, function(x) DNAStringSet(x$sequence))
   # Name DNAStringSetList using the recordIDs.
-  for (i in seq(from = 1, to = length(unique(dfCentroidSeqs$bin_uri)), by = 1)) {
+  for (i in seq(from = 1, to = length(unique(dfCentroidSeqs$accession_number)), by = 1)) {
     names(DNAStringSetList[[i]]) <- largeBinList[[i]]$recordID
   }
   # Align the sequences in each BIN using MUSCLE.
@@ -70,7 +75,10 @@ source("RefSeqTrim2.R")
   dfCentroidSeqs <- dfCentroidSeqs[dfCentroidSeqs$recordID %in% centroidSeqs]
   # Combine the singletons and centroid sequences into a new dataframe. Now each BIN has a representative sequence.
   dfCentroidSeqs <- rbind(dfCentroidSeqs, dfSingletons)
-
+} else {
+  # Centroid sequence selection not required if all BINs are singletons.
+  dfCentroidSeqs <- dfPreCentroid
+}
 
 # REFERENCE SEQUENCE TRIMMING #
 # Trim the centroid sequences according to a standardized reference sequence. Currently, a standard length (658 bp) COI-5P sequence from 
