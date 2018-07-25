@@ -36,12 +36,11 @@ library(muscle)
 #install.packages("foreach")
 library(foreach)
 # Load the function(s) designed for this script:
-source("RefSeqTrim.R")
+source("RefSeqTrimcoimammals.R")
 
 #############################################################################################################################
-dfPreCentroid[, num_seq := length(accession_number), by = species_name]
 # Subset dataframe to find BINs with more than one sequence.
-dfLargeBins <- dfPreCentroid[num_seq > 1]
+dfLargeBins <- dfPreCentroid[filtered_bin_size > 1]
 # If there is at least one BIN with more than one sequence...
 if (nrow(dfLargeBins) > 0) {
   # Remove gaps from the sequences.
@@ -85,8 +84,6 @@ if (nrow(dfLargeBins) > 0) {
 
 # Use the RefSeqTrim function to trim nucleotide sequences in a dataframe according to a given reference sequence.
 dfCheckCentroidSeqs <- RefSeqTrim(dfCentroidSeqs)
-dfCheckCentroidSeqs[,1:7]<- dfCentroidSeqs[,1:7]
 
 # Remove objects that are not required for Section 4.
-rm(alignmentList, centroidSeqs, i); rm(dfPreCentroid, dfLargeBins, dfSingletons); rm(largeBinList, distanceMatrixList, DNAStringSetList)
-
+rm(alignmentList, centroidSeqs, first_time, i); rm(dfPreCentroid, dfLargeBins, dfSingletons); rm(largeBinList, distanceMatrixList, DNAStringSetList)

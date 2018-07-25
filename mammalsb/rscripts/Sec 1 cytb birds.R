@@ -13,7 +13,8 @@ library(data.table)
 
 #Read fasta
 setwd("C:/Users/RalphArvin/Desktop/data")
-cytB <- readDNAStringSet("cytb birds.fasta")
+cytB <- readDNAStringSet("cytb birds 1.fasta")
+#cytB <- readDNAStringSet("cytb birds.fasta")
 setwd("C:/Users/RalphArvin/Desktop/work-s2018/genbank")
 seq_name = names(cytB)
 sequence = paste(cytB)
@@ -47,6 +48,6 @@ dfcytB <- dfcytB[, percentage_gapN := internal_gapN/nchar(sequence)][!percentage
 dfcytB[, c("internal_gapN", "percentage_gapN") := NULL]
 
 #Filter 4: Remove short and long sequences
-dfcytB <- dfcytB[nchar(gsub("-", "", sequence)) %between% c(500, 1500)]
+dfcytBOutgroup <- dfcytB[nchar(gsub("-", "", sequence)) %between% c(500, 1500)]
 rm(cytB)
 

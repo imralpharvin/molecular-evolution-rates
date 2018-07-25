@@ -82,6 +82,7 @@ amnioteMammalData <- amnioteMammalData[, interbirth_interval := interbirth_inter
 # Convert years to months
 amnioteMammalData <- amnioteMammalData[, max_longevity := max_longevity *12]
 # Data table reorganization
+dfSpeciesInfo <- amnioteMammalData[, c(2:5)]
 amnioteMammalData <- amnioteMammalData[, !c(1,2,3,5,6)]
 
 ##### Source 4: Anage  #####
@@ -113,6 +114,7 @@ dfLatitudeSpecies[, lat_num := as.numeric(lat)]
 ######################################################################################################################
 ##### Traits ####
 # Single row per species
+
 dfFilteredSingle <- dfcytB[!duplicated(species_name)][, .(accession_number, species_name)]
 
 #### TRAIT: BODY MASS ####
@@ -572,9 +574,11 @@ dfTrophicLevel <- dfTrait[,!c(2)]
 
 ######################################################################################################################
 #### Merging traits ####
-dfTraits <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfFilteredSingle, dfBodyMass, dfForearmLength, dfHeadBodyLength, dfEyeOpeningAge, dfBmrRate, dfBmrMass, dfMaxLongevity, dfSexualMaturityAge, dfAdultSvlLength, dfMaturityLength, dfGrowthRate, dfImrPerYear,dfMrdt, dfMetabolicRate, dfFirstBirthAge, dfGestationLength, dfInterbirthInterval, dfLitterSize, dfLittersPerYear, dfNeonateBodyMass, dfNeonateHeadBodyLength, dfNeonateSvlLength, dfTeatNumber, dfWeaningAge, dfWeaningBodyMass, dfWeaningBodyLength, dfDispersalAge, dfHomeRange, dfHomeRangeIndividual, dfPopulationDensity, dfPopulationGroupSize, dfSocialGroupSize, dfLatitudeMedian, dfLatitudeRange, dfGrArea, dfGrMaxLat, dfGrMinLat, dfGrMidRangeLat, dfGrMaxLong, dfGrMinLong, dfGrMidRangeLong, dfHumanPopulationMin, dfHumanPopulationMean, dfHumanPopulation5p, dfHumanPopulationChange, dfPrecipitationMean, dfTemperatureMean, dfAETMean, dfPETMean, dfActivityCycle, dfDietBreadth, dfHabitatBreadth, dfTerrestriality, dfTrophicLevel))
+#dfSpeciesInfo <- dfFiltered[!duplicated(species_name)]
+#dfSpeciesInfo <- dfSpeciesInfo[,c(4:7)]
+dfTraits <- Reduce(function(...) merge(..., all = T, by = "species_name"), list(dfSpeciesInfo, dfFilteredSingle, dfBodyMass, dfForearmLength, dfHeadBodyLength, dfEyeOpeningAge, dfBmrRate, dfBmrMass, dfMaxLongevity, dfSexualMaturityAge, dfAdultSvlLength, dfMaturityLength, dfGrowthRate, dfImrPerYear,dfMrdt, dfMetabolicRate, dfFirstBirthAge, dfGestationLength, dfInterbirthInterval, dfLitterSize, dfLittersPerYear, dfNeonateBodyMass, dfNeonateHeadBodyLength, dfNeonateSvlLength, dfTeatNumber, dfWeaningAge, dfWeaningBodyMass, dfWeaningBodyLength, dfDispersalAge, dfHomeRange, dfHomeRangeIndividual, dfPopulationDensity, dfPopulationGroupSize, dfSocialGroupSize, dfLatitudeMedian, dfLatitudeRange, dfGrArea, dfGrMaxLat, dfGrMinLat, dfGrMidRangeLat, dfGrMaxLong, dfGrMinLong, dfGrMidRangeLong, dfHumanPopulationMin, dfHumanPopulationMean, dfHumanPopulation5p, dfHumanPopulationChange, dfPrecipitationMean, dfTemperatureMean, dfAETMean, dfPETMean, dfActivityCycle, dfDietBreadth, dfHabitatBreadth, dfTerrestriality, dfTrophicLevel))
 dfTraits<- dfTraits[!is.na(accession_number)]
-missing <- dfTraits[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 3:44]
+missing <- dfTraits[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 6:59]
 missing <- which(missing == TRUE)
 dfTraits <-dfTraits[!missing]
 

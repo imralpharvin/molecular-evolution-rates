@@ -6,21 +6,21 @@ RefSeqTrim <- function(x) {
   # x = Dataframe containing sequence information.
   
   # Insert your reference sequence here! Between the "".
-  dfRefSeqs <- data.frame(taxa = c("Mus Musculus"), nucleotides = c("ATTCAACTACAGAAACACATAATGACAAACATACGAAAAACACACCCATTATTTAAAATTATTAACCACTCATTCATTGACCTACCCGCCCCATCCAACATTTCATCATGATGAAACTTTGGGTCCCTTCTAGGAATCTGCCTAATAGTCCAAATCATCACAGGCCTTTTCTTAGCCATACACTATACATCAGATACAATAACAGCCTTTTCATCAGTAACACACATTTGTCGAGACGTAAATTACGGGTGACTAATCCGATATATACACGCAAACGGAGCCTCAATATTTTTTATTTGCTTATTCCTTCATGTCGGACGAGGCTTATATTATGGATCATATACATTTATAGAAACCTGAAACATTGGAGTACTTCTACTGTTCGCAGTCATAGCCACAGCATTTATAGGCTACGTCCTTCCATGAGGACAGATATCATTCTGAGGCGCCACAGTTATTACAAACCTCCTATCAGCCATCCCATACATTGGAACAACCCTAGTCGAATGAATTTGAGGGGGCTTCTCAGTAGACAAAGCAACCTTGACCCGATTCTTCGCTTTCCACTTCATCTTACCATTTATCATCGCGGCCCTAGCAATCGTTCACCTTCTTTTCCTCCACGAAACAGGATCAAACAACCCAACAGGGTTAAACTCAGATGCAGATAAAATTCCATTTCACCCCTACTATACAATCAAAGATATCCTAGGTATCCTAATCATATTCTTAATTCTCATAACCCTAGTATTATTCTTCCCGGATACACTAGGAGACCCAGACAACTACATACCAGCTAATCCACTAAACACCCCACCCCATATTAAACCCGAATGATATTTCCTATTTGCATACGCTATTCTACGCTCAATCCCCAATAAACTAGGAGGTGTCCTAGCCTTAGTTTTATCTATCCTAATTTTAGCCCTAATACCTTTCCTTCATACCTCAAAGCAACGAAGCCTAATATTCCGCCCAATCACACAAATTTTATACTGAATCCTAGTAGCTAACCTACTTATCTTAACCTGAATTGGAGGCCAACCAGTAGAACACCCATTTATTATCATTGGCCAACTAGCCTCCATCTCATACTTCTCAATCATCTTAATTCTCATACCAATCTCAGGAATTATCGAAGACAAAATACTAAAATTATATCCATGTCTTGGTAGTATAAGCATTACCCTG"))
-  colnames(dfRefSeqs)[2] <- "nucleotides"
+  dfRefSeqs <- data.frame(taxa = c("Mus Musculus"), sequence = c("TTATTAACCACTCATTCATTGACCTACCCGCCCCATCCAACATTTCATCATGATGAAACTTTGGATCCCTTCTAGGAATCTGCCTAATAGTTCAAATCATCACAGGCCTTTTCTTAGCCATACACTATACATCAGATACAATAACAGCCTTTTCATCAGTAACACACATTTGCCGAGACGTAAATTACGGGTGACTAATCCGATACATACACGCAAACGGAGCCTCAATATTTTTTATTTGCTTATTCCTTCATGTCGGACGAGGCTTATATTATGGATCATATACATTTATAGAAACCTGAAACATTGGAGTACTTCTACTGTTCGCAGTCATAGCCACAGCATTTATAGGTTATGTCCTTCCATGAGGACAAATATCATTCTGAGGCGCCACAGTTATTACAAACCTCCTATCAGCCATCCCATATATTGGAACAACCCTAGTCGAATGAATTTGGGGAGGCTTCTCAGTAGACAAAGCCACCTTAACCCGATTCTTCGCTTTCCACTTCATCTTACCATTTATCATCGCGGCCCTAGCAATCGTTCACCTTCTTTTCCTTCACGAAACAGGATCAAACAACCCAACAGGATTAAACTCAGATGCAGATAAAATCCCATTTCATCCCTACTATACAATCAAAGATATCCTAGGTATCCTAATTATATT"))
+  colnames(dfRefSeqs)[2] <- "sequence"
   # Convert to datatable for some data manipulation.
   dfRefSeqs <- setDT(dfRefSeqs)
-  dfRefSeqs[, nucleotides := as.character(nucleotides)]
+  dfRefSeqs[, sequence := as.character(sequence)]
   # Symmetrical trimming of the references to a standard 620 bp.
   # The user can alter this if desired.
-  dfRefSeqs[, nucleotides := substr(nucleotides, 20, nchar(nucleotides) - 19)]
+  dfRefSeqs[, sequence := substr(sequence, 20, nchar(sequence) - 19)]
   # Check sequence length.
-  dfRefSeqs[, seq_length := nchar(nucleotides)]
+  dfRefSeqs[, seq_length := nchar(sequence)]
   # We must ensure that the sequences are of the chr type.
-  alignmentSeqs <- as.character(x$nucleotides)
+  alignmentSeqs <- as.character(x$sequence)
   # Name our sequences according to species names.
   names(alignmentSeqs) <- x$species_name
-  alignmentRef <- as.character(dfRefSeqs$nucleotides[1])
+  alignmentRef <- as.character(dfRefSeqs$sequence[1])
   # Name our reference sequence "REFERENCE".
   names(alignmentRef) <- "REFERENCE"
   # Append our sequences together.
@@ -48,7 +48,7 @@ RefSeqTrim <- function(x) {
   refSeqPosStart <- regexpr("[ACTG]", refSeqPos)
   refSeqPosStart <- as.numeric(refSeqPosStart)
   # Find last nucleotide position of the reference sequence.
-  refSeqPosEnd <- nchar(dfRefSeqs$nucleotides[1]) + refSeqPosStart
+  refSeqPosEnd <- nchar(dfRefSeqs$sequence[1]) + refSeqPosStart
   refSeqPosEnd <- as.numeric(refSeqPosEnd)
   # Take a substring of the alignment by using these positions to "trim" the 
   # alignment.
@@ -69,7 +69,7 @@ RefSeqTrim <- function(x) {
   x <- x[match(alignmentOrder, x$species_name), ]
   # Replace the old sequences with the new sequences.
   trimmedSeqs <- as.character(DNAStringSet3)
-  x$nucleotides <- trimmedSeqs
+  x$sequence <- trimmedSeqs
   # Return a dataframe with the newly trimmed sequences.
   return(x)
 }

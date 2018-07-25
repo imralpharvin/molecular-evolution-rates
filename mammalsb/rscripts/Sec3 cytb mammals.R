@@ -37,9 +37,10 @@ library(muscle)
 #install.packages("foreach")
 library(foreach)
 # Load the function(s) designed for this script:
-source("RefSeqTrim.R")
+source("RefSeqTrimcytbmammals.R")
 
 #############################################################################################################################
+
 dfPreCentroid[, num_seq := length(accession_number), by = species_name]
 # Subset dataframe to find BINs with more than one sequence.
 dfLargeBins <- dfPreCentroid[num_seq > 1]
@@ -52,13 +53,13 @@ if (nrow(dfLargeBins) > 0) {
   # We also have to create another separate dataframe with BINs that only have one sequence, called dfSingletons.
   dfSingletons <- dfPreCentroid[!accession_number %in% dfLargeBins$accession_number]
   # We then take the dfCentroidSeqs sequences and group them by BIN.
-  largeBinList <- split(dfCentroidSeqs, by = "accession_number")
+  largeBinList <- split(dfCentroidSeqs, by = "species_name")
   # Convert all the sequences in largeBinList to DNAStringSet format for 
   # the multiple sequence alignment.
   DNAStringSetList <- lapply(largeBinList, function(x) DNAStringSet(x$sequence))
   # Name DNAStringSetList using the recordIDs.
-  for (i in seq(from = 1, to = length(unique(dfCentroidSeqs$accession_number)), by = 1)) {
-    names(DNAStringSetList[[i]]) <- largeBinList[[i]]$recordID
+  for (i in seq(from = 1, to = length(unique(dfCentroidSeqs$species_name)), by = 1)) {
+    names(DNAStringSetList[[i]]) <- largeBinList[[i]]$accession_number
   }
   # Align the sequences in each BIN using MUSCLE.
   alignmentList <- lapply(DNAStringSetList, function(x) muscle::muscle(x, diags = TRUE, gapopen = -3000))
@@ -72,7 +73,7 @@ if (nrow(dfLargeBins) > 0) {
   centroidSeqs <- gsub("^.*\\.", "", centroidSeqs)
   centroidSeqs <- as.numeric(centroidSeqs)
   # Subset dfCentroidSeqs by the recordIDs of the centroid sequences.
-  dfCentroidSeqs <- dfCentroidSeqs[dfCentroidSeqs$recordID %in% centroidSeqs]
+  dfCentroidSeqs <- dfCentroidSeqs[dfCentroidSeqs$accession_number %in% centroidSeqs]
   # Combine the singletons and centroid sequences into a new dataframe. Now each BIN has a representative sequence.
   dfCentroidSeqs <- rbind(dfCentroidSeqs, dfSingletons)
 } else {
