@@ -42,7 +42,7 @@ while( temp <= length(mainTree$tip.label)){
   temp = temp + 1;
 }
 # Root the tree using your chosen outgroup species.
-mainTree <- root(mainTree, outgroup = "Acanthiza pusilla", resolve.root = T)
+mainTree <- root(mainTree, outgroup = "Mirafra africana", resolve.root = T)
 mainTree$edge.length = abs(mainTree$edge.length)
 ### TRAIT: NUMBER OF NODES.
 # Match mainTree with data subset. This will ensure the tree has only the tips we need for data analysis.
@@ -65,12 +65,12 @@ iqr <- upperQuantile - lowerQuantile
 upperThreshold <- (iqr * 3) + upperQuantile
 lowerThreshold <-  lowerQuantile - (iqr * 3)
 # Extreme short branches.
-dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 53:54)]
+dfShort <- dfTraits[branch_length < lowerThreshold][, c(1, 50:51)]
 # Get the sequence information in case you want to BLAST the sequence (also, we aren't interested in outgroup species here,
 # that's why we are using dfCentroidSeqsNO).
 dfShort <- merge(dfShort, dfCheckCentroidSeqs, by = "species_name")
 # Do the same for the extreme long branches.
-dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 53:54)]
+dfLong <- dfTraits[branch_length > upperThreshold][, c(1, 50:51)]
 dfLong <- merge(dfLong, dfCheckCentroidSeqs, by = "species_name")
 # Remove from dataset, if desired.
 dfTraits <- RemoveSequences(dfTraits, c(dfShort$species_name, dfLong$species_name))
@@ -88,7 +88,7 @@ dfTraits <- dfTraits[match(mainTree$tip.label, dfTraits$species_name), ]
 # Use the PGLS function to perform single-variable (with number of nodes as a control variable) for all of the traits. 
 # e.g. branch_length ~ trait_of_interest + number_of_nodes
 # We will do this by looping through all of the columns containing the trait data using lapply.
-traits <- as.list(colnames(dfTraits[,c(5:30)]))
+traits <- as.list(colnames(dfTraits[,c(6:8, 10, 12:13, 20, 26:27)]))
 # Set to dataframe.
 dfTraits <- as.data.frame(dfTraits)
 

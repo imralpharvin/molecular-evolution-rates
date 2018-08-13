@@ -21,6 +21,7 @@ library(tidyr)
 source("GetTraitSpecificDataBIN.R")
 source("GetTraitSpecificData.R")
 source("GetTraitInfo.R")
+source("RemoveTraits.R")
 
 ##########################################GETTING ALL SOURCES############################################
 ##### Source 1: Pantheria ####
@@ -578,7 +579,9 @@ missing <- dfTraits[, apply(.SD, 1, function(x) all(is.na(x))), .SDcols = 4:54]
 missing <- which(missing == TRUE)
 dfTraits <-dfTraits[!missing]
 
-GetTraitInfo(dfTraits$body_mass)
+RemoveColumns <- RemoveTraits(dfTraits)
+dfTraits[, RemoveColumns]<- NULL
+
 GetTraitInfo(dfTraits$forearm_length)
 GetTraitInfo(dfTraits$headbody_length)
 GetTraitInfo(dfTraits$eyeopening_age)

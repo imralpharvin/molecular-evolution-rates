@@ -40,7 +40,7 @@ colnames(pantheriaMammalData) <- c("order", "family", "genus", "species_name", "
 pantheriaMammalData[pantheriaMammalData == -999] <- NA
 # Converting to data table
 pantheriaMammalData <- as.data.table(pantheriaMammalData)
-pantheriaMammalData <- pantheriaMammalData[,!c(1,2,3)]
+#pantheriaMammalData <- pantheriaMammalData[,!c(1,2,3)]
 
 ##### Source 2: Placental mammal data #####
 # Read mammal data
@@ -60,7 +60,7 @@ placentalMammalData <- placentalMammalData[, gestation_length := gestation_lengt
 placentalMammalData <- placentalMammalData[, weaning_age := weaning_age *30]
 placentalMammalData <- placentalMammalData[, firstbirth_age := firstbirth_age *30]
 # Data table reorganization
-placentalMammalData <- placentalMammalData[, !c(1,2,4,5)]
+#placentalMammalData <- placentalMammalData[, !c(1,2,4,5)]
 
 ##### Source 3: Amniote #####
 # Read mammal data
@@ -83,7 +83,7 @@ amnioteMammalData <- amnioteMammalData[, interbirth_interval := interbirth_inter
 amnioteMammalData <- amnioteMammalData[, max_longevity := max_longevity *12]
 # Data table reorganization
 dfSpeciesInfo <- amnioteMammalData[, c(2:5)]
-amnioteMammalData <- amnioteMammalData[, !c(1,2,3,5,6)]
+#amnioteMammalData <- amnioteMammalData[, !c(1,2,3,5,6)]
 
 ##### Source 4: Anage  #####
 # Filter the original data using the selectedTraits vector as the subset
@@ -102,7 +102,7 @@ anageMammalData <- as.data.table(anageMammalData)
 # Convert years to months
 anageMammalData <- anageMammalData[, max_longevity := max_longevity *12]
 # Data table reorganization
-anageMammalData <- anageMammalData[, !c(1,2,3,5,6)]
+#anageMammalData <- anageMammalData[, !c(1,2,3,5,6)]
 
 ##### Source 5: BOLD #####
 # Filtering for presence of a latitude value.

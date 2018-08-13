@@ -13,7 +13,7 @@ library(seqinr)
 library(Biostrings)
 
 #Converting data table to DNAStringSet object
-mammalDSA <- DNAStringSet(dfCentroidSeqsNO$nucleotides)
+mammalDSA <- DNAStringSet(dfCheckCentroidSeqs$sequence)
 
 #Write dna file for dna string set
 write.dna(mammalDSA, "mammals.DNA")
@@ -24,22 +24,15 @@ mammals <- read.dna("mammals.dna", format="interleaved")
 #DNA to phyDAT format
 mammals_phyDat <- phyDat(mammals, type = "DNA", levels = NULL)
 
-#create distance matrix
-dm<-dist.ml(mammals_phyDat)
+#Compute pairwise distance
+dm <- dist.ml(mammals_phyDat, model="JC69")
 
-#run model test
-#mt<-modelTest(mammals_phyDat)
-
-#Create environemnt 
-#env<-attr(mt,"env")
-#find parameters 
-#fit<-eval(get("HKY+G+I",env),env)
-
+#NJ tree estimation
 mammals_NJ  <- NJ(dm)
-fit <- pml(mammals_NJ, mammals_phyDat,k=4,inv=0.2)
-fitHKY <- optim.pml(fit, model = "HKY",  rearrangement = "stochastic", optInv=TRUE, optGamma=TRUE)
 
+#Plot NJ tree
+plot(mammals_NJ, main = "Neighbor Joining")
 
 #Write Tree
-write.tree(fitHKY$tree, file="bootstrap_example.tree")
+write.tree(mammals_NJ, file="bootstrap_example.tree")
 

@@ -5,7 +5,6 @@ GetTraitInfo <- function(x) {
   
   # Get class and name of trait.
   traitType <- class(x)
-  print(deparse(substitute(x)))
   
   # If the trait is continuous...
   if(traitType == "numeric") {
@@ -21,7 +20,14 @@ GetTraitInfo <- function(x) {
     # Plot of histogram.
     hist(x, main = "")
     paste("Histogram plotted!")
-    
+    if(sum(!is.na(x)) < 100)
+       {
+    return(1)
+    }
+    else
+    {
+      return(0)
+    }
     # If the trait is discrete (categorical)...
   } else if(traitType == "character" | traitType == "factor" | traitType == "integer") {
   
@@ -30,5 +36,6 @@ GetTraitInfo <- function(x) {
     # Table of trait information:
     print("Number of observations per category: ")
     print(table(x))
+    print(" ")
   }
 }
